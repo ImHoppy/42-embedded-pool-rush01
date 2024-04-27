@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <util/twi.h>
 #include <util/delay.h>
 #include <i2c.h>
 #include <stdbool.h>
@@ -71,11 +72,16 @@ void seg7_init()
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x06);
 	i2c_stop();
+	i2c_start(slave_address, I2C_READ);
+	i2c_read(NACK);
+	uint8_t config = TWDR;
+	i2c_stop();
 
+	config = ~((~config) | 0b11110000); // Set as output
 	// Set as output
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x06);
-	i2c_write(0b00001111); // Set output digit selector
+	i2c_write(config);	   // Set output digit selector
 	i2c_write(0x00);	   // Set output all segments
 	i2c_stop();
 }

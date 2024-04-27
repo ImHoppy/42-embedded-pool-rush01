@@ -54,3 +54,5 @@ void	set_leds_spi(uint8_t RGB[3][3])
 
 	end_frame();
 }
+
+void clear_leds_spi() { set_leds_spi((uint8_t[3][3]){{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}); }

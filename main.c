@@ -16,7 +16,7 @@
 #define D9 (1 << 3)
 #define D10 (1 << 2)
 #define D11 (1 << 1)
-#define MAX_MODE 11
+#define MAX_MODE 12
 
 volatile uint16_t displed_value = 0;
 volatile bool display_point = false;
@@ -25,8 +25,8 @@ volatile uint8_t current_mode = 0;
 
 void firmware_bootup()
 {
-	// Set D1, D2, D3, D4 as output
-	DDRB |= _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
+	// Clear RGB LEDs
+	clear_leds_spi();
 	// Turn on D1, D2, D3, D4 for 3 sec
 	PORTB ^= (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
 	seg7_turnall(true);
@@ -40,7 +40,7 @@ ISR(TIMER1_OVF_vect)
 {
 	if (current_mode == 4)
 	{
-		static uint8_t color = 1;
+		static uint8_t color = 0;
 
 		if (color == 0)
 			set_leds_spi((uint8_t[3][3]){{100, 0, 0}, {100, 0, 0}, {100, 0, 0}}); // set all spi leds as RED
@@ -48,7 +48,7 @@ ISR(TIMER1_OVF_vect)
 			set_leds_spi((uint8_t[3][3]){{0, 100, 0}, {0, 100, 0}, {0, 100, 0}}); // set all spi leds as GREEN
 		else
 			set_leds_spi((uint8_t[3][3]){{0, 0, 100}, {0, 0, 100}, {0, 0, 100}}); // set all spi leds as BLUE
-		color = (color + 1) % 2;
+		color = (color + 1) % 3;
 	}
 }
 
@@ -58,21 +58,25 @@ ISR(TIMER0_COMPA_vect)
 	{
 	case 0:
 	{
+		mode_0();
 		break;
 	}
 
 	case 1:
 	{
+		mode_1();
 		break;
 	}
 
 	case 2:
 	{
+		mode_2();
 		break;
 	}
 
 	case 3:
 	{
+		mode_3();
 		break;
 	}
 
@@ -160,11 +164,16 @@ void test_button(uint8_t button1, uint8_t button2, uint8_t button3)
 	}
 }
 
+void current_mode_display() { PORTB = (current_mode & 0b111) | ((current_mode & 0b1000) << 1); }
+
 int main()
 {
 	uint8_t button_state1 = 0;
 	uint8_t button_state2 = 0;
 	uint8_t button_state3 = 0;
+
+	// Set D1, D2, D3, D4 as output
+	DDRB |= _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
 
 	adc_init(ADC_NORMAL);
 	i2c_init();
@@ -179,6 +188,7 @@ int main()
 
 	mode_4_setup();
 	current_mode = 4;
+	current_mode_display();
 	while (1)
 	{
 		if (button_state1 == 0)
@@ -186,8 +196,11 @@ int main()
 			if (!(PIND & SW1)) // checking if button 1 is pressed
 			{
 				button_state1 = 1;
+				cli();
 				current_mode = (current_mode + 1) % MAX_MODE;
-				_delay_ms(20);
+				current_mode_display();
+				clear_leds_spi();
+				sei();
 			}
 		}
 
@@ -201,7 +214,10 @@ int main()
 					current_mode = MAX_MODE;
 				else
 					current_mode--;
-				_delay_ms(20);
+				current_mode_display();
+				cli();
+				clear_leds_spi();
+				sei();
 			}
 		}
 		// do the same for SW3
