@@ -17,7 +17,7 @@ void	spi_init()//initializing SPI as master
 	//sets clock frequency as /16
 	SPCR |= (1 << SPR0);
 	SPCR &= ~(1 << SPR1);
-}	
+}
 
 void	spi_send(uint8_t data)
 {
@@ -33,7 +33,7 @@ void	start_frame()
 
 void	led_frame(uint8_t r, uint8_t g, uint8_t b)
 {
-	spi_send(0b11100100);
+	spi_send(0b1110001);
 	spi_send(b);
 	spi_send(g);
 	spi_send(r);
@@ -48,9 +48,9 @@ void	end_frame()
 void	set_leds_spi(uint8_t RGB[3][3])
 {
 	start_frame();
-	
+
 	for (uint8_t i = 0; i < 3; i++)
 		led_frame(RGB[i][0], RGB[i][1], RGB[i][2]);
-		
+
 	end_frame();
 }
