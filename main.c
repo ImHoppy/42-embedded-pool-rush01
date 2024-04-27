@@ -67,14 +67,14 @@ int main()
 	// const uint8_t max_mode = 3;
 	while (1)
 	{
-		// if ((PIND & SW1))
-		// {
-		// 	current_mode = (current_mode - 1) % max_mode;
-		// }
-		// if ((PIND & SW2))
-		// {
-		// 	current_mode = (current_mode + 1) % max_mode;
-		// }
+		if ((PIND & SW1))
+		{
+			current_mode = (current_mode - 1) % max_mode;
+		}
+		if ((PIND & SW2))
+		{
+			current_mode = (current_mode + 1) % max_mode;
+		}
 		// if (current_mode > max_mode)
 		// {
 		// 	current_mode = 2;
