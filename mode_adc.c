@@ -3,15 +3,26 @@
 
 extern volatile uint16_t displed_value;
 
-void mode_rv1(void)
+// mode rv1
+void mode_0(void)
 {
 	displed_value = adc_read(0);
 }
-void mode_ldr(void)
+
+// mode ldr
+void mode_1(void)
 {
 	displed_value = adc_read(1);
 }
-void mode_ntc(void)
+
+// mode ntc
+void mode_2(void)
 {
 	displed_value = adc_read(2);
+}
+
+// mode internal temperature
+void mode_3(void)
+{
+	displed_value = adc_read(8);
 }

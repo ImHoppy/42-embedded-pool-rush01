@@ -1,4 +1,5 @@
 
-void mode_rv1(void);
-void mode_ldr(void);
-void mode_ntc(void);
+void mode_0(void);
+void mode_1(void);
+void mode_2(void);
+void mode_3(void);
