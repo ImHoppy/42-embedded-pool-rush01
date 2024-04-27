@@ -15,7 +15,7 @@
 #define D9 (1 << 3)
 #define D10 (1 << 2)
 #define D11 (1 << 1)
-#define MAX_MODE 4
+#define MAX_MODE 11
 
 volatile uint16_t display_value = 0;
 volatile bool display_point = false;
@@ -99,6 +99,36 @@ ISR(TIMER0_COMPA_vect)
 			break;
 		}
 
+		case 6:
+		{
+			break;
+		}
+
+		case 7:
+		{
+			break;
+		}
+
+		case 8:
+		{
+			break;
+		}
+
+		case 9:
+		{
+			break;
+		}
+
+		case 10:
+		{
+			break;
+		}
+
+		case 11:
+		{
+			break;
+		}
+
 		default:
 		{
 			break;
@@ -114,8 +144,40 @@ ISR(TIMER0_COMPA_vect)
 #define SW1 (1 << 2)
 #define SW2 (1 << 4)
 
+void	test_button(uint8_t button1, uint8_t button2, uint8_t button3)
+{
+	if (button1)
+	{
+		//turn on D9
+	}
+	else
+	{
+		//turn off D9
+	}
+	if (button2)
+	{
+		//turn on D10
+	}
+	else
+	{
+		//turn off D10
+	}
+	if (button3)
+	{
+		//turn on D11
+	}
+	else
+	{
+		//turn off D11
+	}
+}
+
 int main()
 {
+	uint8_t	button_state1 = 0;
+	uint8_t	button_state2 = 0;
+	uint8_t	button_state3 = 0;
+
 	adc_init(ADC_NORMAL);
 	i2c_init();
 	uart_init(UART_ALL);
@@ -131,15 +193,38 @@ int main()
 	current_mode = 4;
 	while (1)
 	{
-		current_mode = 4;
-		// if ((PIND & SW1))
-		// {
-		// 	current_mode = (current_mode - 1) % MAX_MODE;
-		// }
-		// if ((PIND & SW2))
-		// {
-		// 	current_mode = (current_mode + 1) % MAX_MODE;
-		// }
+		if (button_state1 == 0)
+		{
+			if (!(PIND & SW1))//checking if button 1 is pressed
+			{
+				button_state1 = 1;
+				current_mode = (current_mode + 1) % MAX_MODE;
+				_delay_ms(20);
+			}
+		}
+
+		if (button_state2 == 0)
+		{
+			if (!(PIND & SW2))//checking if button 2 is pressed
+			{
+				button_state2 = 1;
+				// current_mode = (current_mode - 1) % MAX_MODE;
+				if (current_mode == 0)
+					current_mode = MAX_MODE;
+				else
+					current_mode--;
+				_delay_ms(20);
+			}
+		}
+		//do the same for SW3
+
+		if (PIND & SW1)//checking if button 1 is not pressed
+			button_state1 = 0;
+		if (PIND & SW2)//checking if button 2 is not pressed
+			button_state2 = 0;
+		//same for SW3
+
+		test_button(button_state1, button_state2, button_state3);//turn on leds if buttons are pressed
 		// if (current_mode > MAX_MODE)
 		// {
 		// 	current_mode = 2;
