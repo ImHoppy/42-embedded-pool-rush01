@@ -1,5 +1,5 @@
 BIN = target/main.bin
-SRCS = ./main.c ./lib/i2c.c ./lib/uart.c ./lib/7segment.c ./lib/timer.c ./lib/adc.c ./lib/mode_4.c
+SRCS = ./main.c ./lib/i2c.c ./lib/uart.c ./lib/7segment.c ./lib/timer.c ./lib/adc.c ./lib/mode_4.c ./mode_adc.c
 
 CC = avr-gcc
 OBJCPY = avr-objcopy

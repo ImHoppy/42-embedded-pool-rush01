@@ -5,6 +5,7 @@
 #include <adc.h>
 #include <7segment.h>
 #include <timer.h>
+#include <modes.h>
 
 // D9 P15
 // D10 P16
@@ -14,21 +15,8 @@
 #define D10 (1 << 2)
 #define D11 (1 << 1)
 
-volatile uint16_t display_value = 0;
+volatile uint16_t displed_value = 0;
 volatile bool display_point = false;
-
-void rv1(void)
-{
-	display_value = adc_read(0);
-}
-void ldr(void)
-{
-	display_value = 1;
-}
-void ntc(void)
-{
-	display_value = 2;
-}
 
 void firmware_bootup()
 {
@@ -45,7 +33,7 @@ void firmware_bootup()
 
 ISR(TIMER0_COMPA_vect)
 {
-	seg7_display_number(display_value, display_point);
+	seg7_display_number(displed_value, display_point);
 }
 
 #define SW1 (1 << 2)
