@@ -27,8 +27,10 @@ void firmware_bootup()
 {
 	// Clear RGB LEDs
 	clear_leds_spi();
+	SPCR =  ~(1 << SPE);//disabling SPI as master
 	// Turn on D1, D2, D3, D4 for 3 sec
-	PORTB ^= (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
+	DDRB |= (1 << PB4); 
+	PORTB |= (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
 	seg7_turnall(true);
 	_delay_ms(3000);
 	PORTB = 0;
@@ -164,7 +166,12 @@ void test_button(uint8_t button1, uint8_t button2, uint8_t button3)
 	}
 }
 
-void current_mode_display() { PORTB = (current_mode & 0b111) | ((current_mode & 0b1000) << 1); }
+void current_mode_display() 
+{ 
+	SPCR =  ~(1 << SPE);//disabling SPI as master
+	DDRB |= (1 << PB4); 
+	PORTB = (current_mode & 0b111) | ((current_mode & 0b1000) << 1);
+}
 
 int main()
 {
@@ -173,12 +180,12 @@ int main()
 	uint8_t button_state3 = 0;
 
 	// Set D1, D2, D3, D4 as output
-	DDRB |= _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
+	DDRB = _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
 
 	adc_init(ADC_NORMAL);
 	i2c_init();
 	uart_init(UART_ALL);
-	spi_init();
+	// spi_init();
 
 	seg7_init();
 	firmware_bootup();
@@ -186,8 +193,10 @@ int main()
 	timer0_init(3);
 	timer0_COMP();
 
-	mode_4_setup();
-	current_mode = 4;
+	timer1_init(1000);
+	timer1_OVF();
+
+	current_mode = 0;
 	current_mode_display();
 	while (1)
 	{
@@ -209,7 +218,6 @@ int main()
 			if (!(PIND & SW2)) // checking if button 2 is pressed
 			{
 				button_state2 = 1;
-				// current_mode = (current_mode - 1) % MAX_MODE;
 				if (current_mode == 0)
 					current_mode = MAX_MODE;
 				else

@@ -5,8 +5,6 @@
 
 void	mode_4_setup()
 {
-	timer1_init(1000);
-	timer1_OVF();
 	// mode_4();
 	// set_leds_spi((uint8_t [3][3]){{100, 0, 0}, {100, 0, 0}, {100, 0, 0}});//set all spi leds as RED
 }

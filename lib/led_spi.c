@@ -6,7 +6,6 @@ void	spi_init()//initializing SPI as master
 
 	//configuring SPI pins
 	DDRB |= (1 << PB2) | (1 << PB3) | (1 << PB5);//setting SS/MOSI/SCK to output
-	DDRB &= ~(1 << PB4);//setting MISO to input
 
 	SPCR |= (1 << SPE) | (1 << MSTR);//enabling SPI as master
 
@@ -27,6 +26,7 @@ void	spi_send(uint8_t data)
 
 void	start_frame()
 {
+	spi_init();//initializing SPI 
 	for (uint8_t i = 0; i < 4; i++)
 		spi_send(0);
 }
@@ -43,6 +43,7 @@ void	end_frame()
 {
 	for (uint8_t i = 0; i < 4; i++)
 		spi_send(255);
+	SPCR =  ~(1 << SPE);//disabling SPI as master
 }
 
 void	set_leds_spi(uint8_t RGB[3][3])
@@ -55,4 +56,20 @@ void	set_leds_spi(uint8_t RGB[3][3])
 	end_frame();
 }
 
-void clear_leds_spi() { set_leds_spi((uint8_t[3][3]){{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}); }
+void clear_leds_spi() 
+{
+	start_frame();
+	spi_send(0b1110000);
+	spi_send(0);
+	spi_send(0);
+	spi_send(0);
+	spi_send(0b1110000);
+	spi_send(0);
+	spi_send(0);
+	spi_send(0);
+	spi_send(0b1110000);
+	spi_send(0);
+	spi_send(0);
+	spi_send(0);
+	end_frame();
+}
