@@ -32,7 +32,7 @@ void firmware_bootup()
 {
 	// Clear RGB LEDs
 	clear_leds_spi();
-	SPCR =  ~(1 << SPE);//disabling SPI as master
+	SPCR = 0;//disabling SPI as master
 	// Turn on D1, D2, D3, D4 for 3 sec
 	DDRB |= (1 << PB4); 
 	PORTB |= (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
@@ -233,7 +233,7 @@ int main()
 	aht20_init();
 
 	seg7_init();
-	// firmware_bootup();
+	firmware_bootup();
 
 	timer0_init(3);
 	timer0_COMP();
