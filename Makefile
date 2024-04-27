@@ -1,9 +1,9 @@
 BIN = target/main.bin
-SRCS = ./main.c ./lib/i2c.c ./lib/uart.c ./lib/7segment.c ./lib/timer.c ./lib/adc.c ./lib/mode_4.c ./mode_adc.c
+SRCS = ./main.c ./lib/i2c.c ./lib/uart.c ./lib/7segment.c ./lib/timer.c ./lib/adc.c ./lib/mode_4.c ./mode_adc.c ./lib/led_spi.c
 
 CC = avr-gcc
 OBJCPY = avr-objcopy
-CFLAGS = -mmcu=atmega328p -D F_CPU=16000000 -Wall -Wextra -Werror -Os -I./lib -MMD -MP
+CFLAGS = -mmcu=atmega328p -D F_CPU=16000000 -Wall -Wextra -Os -I./lib -MMD -MP
 
 PORT = /dev/ttyUSB0
 BAUD_RATE = 115200
@@ -32,7 +32,7 @@ clean:
 	rm -rf ./target $(OBJS) $(DEPS)
 
 
-screen:
+screen: all
 	screen ${PORT} ${BAUD_RATE}
 
 -include $(DEPS)

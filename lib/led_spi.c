@@ -45,7 +45,7 @@ void	end_frame()
 		spi_send(255);
 }
 
-void	set_leds(uint8_t RGB[3][3])
+void	set_leds_spi(uint8_t RGB[3][3])
 {
 	start_frame();
 	
