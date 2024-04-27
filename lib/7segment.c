@@ -10,7 +10,7 @@ static const uint8_t slave_address = (0b0100 << 3) /* Fixed Address*/ | 0b000 /*
 
 void seg7_display(uint8_t pos, uint8_t n, bool point)
 {
-	static const uint8_t seg7[12] = {
+	static const uint8_t seg7[13] = {
 		0b00111111, // 0
 		0b00000110, // 1
 		0b01011011, // 2
@@ -23,6 +23,7 @@ void seg7_display(uint8_t pos, uint8_t n, bool point)
 		0b01101111, // 9
 		0b00000000, // Clear
 		0b01111111, // ALL
+		0b01000000, // -
 	};
 
 	// Clear old data register before writing new data

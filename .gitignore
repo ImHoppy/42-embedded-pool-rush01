@@ -1,2 +1,6 @@
 target/
 _resources/
+*.d
+*.o
+*.bin
+*.hex

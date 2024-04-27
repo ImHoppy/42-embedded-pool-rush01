@@ -5,6 +5,8 @@
 #include <adc.h>
 #include <7segment.h>
 #include <timer.h>
+#include "led_spi.h"
+#include "modes.h"
 
 // D9 P15
 // D10 P16
@@ -13,9 +15,12 @@
 #define D9 (1 << 3)
 #define D10 (1 << 2)
 #define D11 (1 << 1)
+#define MAX_MODE 4
 
 volatile uint16_t display_value = 0;
 volatile bool display_point = false;
+
+volatile	uint8_t current_mode = 0;
 
 void rv1(void)
 {
@@ -43,9 +48,67 @@ void firmware_bootup()
 	_delay_ms(1000);
 }
 
+ISR(TIMER1_OVF_vect)
+{
+	if (current_mode == 4)
+	{
+		static uint8_t	color = 1;
+
+		if (color == 0)
+			set_leds_spi((uint8_t [3][3]){{100, 0, 0}, {100, 0, 0}, {100, 0, 0}});//set all spi leds as RED
+		else if (color == 1)
+			set_leds_spi((uint8_t [3][3]){{0, 100, 0}, {0, 100, 0}, {0, 100, 0}});//set all spi leds as GREEN
+		else
+			set_leds_spi((uint8_t [3][3]){{0, 0, 100}, {0, 0, 100}, {0, 0, 100}});//set all spi leds as BLUE
+		color = (color + 1) % 2;
+	}
+}
+
 ISR(TIMER0_COMPA_vect)
 {
-	seg7_display_number(display_value, display_point);
+	switch (current_mode)
+	{
+		case 0:
+		{
+			break;
+		}
+
+		case 1:
+		{
+			break;
+		}
+
+		case 2:
+		{
+			break;
+		}
+
+		case 3:
+		{
+			break;
+		}
+
+		case 4:
+		{
+			mode_4();
+			break;
+		}
+
+		case 5:
+		{
+			break;
+		}
+
+		default:
+		{
+			break;
+		}
+	}
+
+	if (current_mode != 4)
+	{
+		seg7_display_number(display_value, display_point);
+	}
 }
 
 #define SW1 (1 << 2)
@@ -56,6 +119,7 @@ int main()
 	adc_init(ADC_NORMAL);
 	i2c_init();
 	uart_init(UART_ALL);
+	spi_init();
 
 	seg7_init();
 	firmware_bootup();
@@ -63,22 +127,23 @@ int main()
 	timer0_init(3);
 	timer0_COMP();
 
-	// uint8_t current_mode = 0;
-	// const uint8_t max_mode = 3;
+	mode_4_setup();
+	current_mode = 4;
 	while (1)
 	{
+		current_mode = 4;
 		// if ((PIND & SW1))
 		// {
-		// 	current_mode = (current_mode - 1) % max_mode;
+		// 	current_mode = (current_mode - 1) % MAX_MODE;
 		// }
 		// if ((PIND & SW2))
 		// {
-		// 	current_mode = (current_mode + 1) % max_mode;
+		// 	current_mode = (current_mode + 1) % MAX_MODE;
 		// }
-		// if (current_mode > max_mode)
+		// if (current_mode > MAX_MODE)
 		// {
 		// 	current_mode = 2;
 		// }
-		rv1();
+		// rv1();
 	}
 }
