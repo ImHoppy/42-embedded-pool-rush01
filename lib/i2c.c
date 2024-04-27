@@ -3,6 +3,8 @@
 #include <uart.h>
 
 #define SCL_CLOCK 100000L
+// #define I2C_DEBUG
+// #define I2C_DEBUG_READ
 
 // TWDR; // TWI Data Register (22.5.3)
 void i2c_init(void)
@@ -35,7 +37,7 @@ uint8_t i2c_start(uint8_t slave_address, i2c_WRITE_READ read_write)
 	uart_printstr(" ");
 #endif
 	// if START has been transmitted.
-	if (TW_STATUS != TW_START)
+	if (TW_STATUS != TW_START && TW_STATUS != TW_REP_START)
 		return (0);
 
 	// Set AHT20 Slave Address (AHT20 7.3)

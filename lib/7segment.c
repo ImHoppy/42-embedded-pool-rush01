@@ -28,15 +28,21 @@ void seg7_display(uint8_t pos, uint8_t n, bool point)
 	};
 
 	// Clear old data register before writing new data
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(0);
+	i2c_start(0b00100000, I2C_READ);
+	i2c_read(NACK);
+	uint8_t to_send = TWDR;
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x02);
-	i2c_write(0xff);
+	to_send |= 0xf0;
+	i2c_write(to_send);
 	i2c_write(0);
 	i2c_stop();
 
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x02);
-	i2c_write(~(0x80 >> pos));
+	i2c_write(to_send & ~(0x80 >> pos));
 	i2c_write(seg7[n] | (point ? 0b10000000 : 0));
 	i2c_stop();
 }
@@ -69,19 +75,20 @@ void seg7_display_number(uint16_t number, bool middle_point)
 void seg7_init()
 {
 	// Read configuration register
-	i2c_start(slave_address, I2C_WRITE);
-	i2c_write(0x06);
-	i2c_stop();
-	i2c_start(slave_address, I2C_READ);
-	i2c_read(NACK);
-	uint8_t config = TWDR;
-	i2c_stop();
+	// i2c_start(slave_address, I2C_WRITE);
+	// i2c_write(0x06);
+	// i2c_stop();
+	// i2c_start(slave_address, I2C_READ);
+	// i2c_read(NACK);
+	// uint8_t config = TWDR;
+	// i2c_stop();
 
-	config = ~((~config) | 0b11110000); // Set as output
+	// config = ~((~config) | 0b11110000); // Set as output
 	// Set as output
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x06);
-	i2c_write(config);	   // Set output digit selector
+	// i2c_write(config);	   // Set output digit selector
+	i2c_write(0b00000001);	   // Set output digit selector
 	i2c_write(0x00);	   // Set output all segments
 	i2c_stop();
 }

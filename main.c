@@ -67,6 +67,7 @@ ISR(TIMER1_OVF_vect)
 		}
 		color = (color + 1) % 3;
 	}
+
 	if (current_mode == 5 || current_mode == 6 || current_mode == 7)
 	{
 		aht20 = aht20_mesure();
@@ -154,33 +155,49 @@ ISR(TIMER0_COMPA_vect)
 
 #define SW1 (1 << 2)
 #define SW2 (1 << 4)
+#define SW3 0
 
-void test_button(uint8_t button1, uint8_t button2, uint8_t button3)
+bool	read_expander0(uint8_t pin)
 {
-	if (button1)
-	{
-		// turn on D9
-	}
-	else
-	{
-		// turn off D9
-	}
-	if (button2)
-	{
-		// turn on D10
-	}
-	else
-	{
-		// turn off D10
-	}
-	if (button3)
-	{
-		// turn on D11
-	}
-	else
-	{
-		// turn off D11
-	}
+	cli();
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(0x00);
+	i2c_start(0b00100000, I2C_READ);
+	i2c_read(NACK);
+	uint8_t data = TWDR;
+	i2c_stop();
+	sei();
+	return (data & (1 << pin));
+}
+
+void	set_expander0(uint8_t port)
+{
+	cli();
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(0);
+	i2c_start(0b00100000, I2C_READ);
+	i2c_read(NACK);
+	uint8_t to_send = TWDR;
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(2);
+	i2c_write(to_send & ~port);
+	i2c_stop();
+	sei();
+}
+
+void	clear_expander0(uint8_t port)
+{
+	cli();
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(0);
+	i2c_start(0b00100000, I2C_READ);
+	i2c_read(NACK);
+	uint8_t to_send = TWDR;
+	i2c_start(0b00100000, I2C_WRITE);
+	i2c_write(2);
+	i2c_write(to_send | port);
+	i2c_stop();
+	sei();
 }
 
 void current_mode_display() 
@@ -208,7 +225,7 @@ int main()
 	aht20_init();
 
 	seg7_init();
-	firmware_bootup();
+	// firmware_bootup();
 
 	timer0_init(3);
 	timer0_COMP();
@@ -225,8 +242,14 @@ int main()
 			if (!(PIND & SW1)) // checking if button 1 is pressed
 			{
 				button_state1 = 1;
+				set_expander0(D9);
 				cli();
-				current_mode = (current_mode + 1) % MAX_MODE;
+				if (current_mode == MAX_MODE - 1)
+					current_mode = 0;
+				else
+					current_mode++;
+				// current_mode = (current_mode + 1) % MAX_MODE;
+				PORTD &= ~(1 << PD3) & ~(1 << PD5) & ~(1 << PD6); // turn off D5
 				current_mode_display();
 				clear_leds_spi();
 				sei();
@@ -238,25 +261,44 @@ int main()
 			if (!(PIND & SW2)) // checking if button 2 is pressed
 			{
 				button_state2 = 1;
+				set_expander0(D10);
 				if (current_mode == 0)
-					current_mode = MAX_MODE;
+					current_mode = MAX_MODE - 1;
 				else
 					current_mode--;
 				current_mode_display();
 				cli();
+				PORTD &= ~(1 << PD3) & ~(1 << PD5) & ~(1 << PD6); // turn off D5
 				clear_leds_spi();
 				sei();
 			}
 		}
-		// do the same for SW3
+
+		if (button_state3 == 0)
+		{
+			if (read_expander0(SW3) == 0) // checking if button 3 is pressed
+			{
+				button_state3 = 1;
+				set_expander0(D11);
+			}
+		}
 
 		if (PIND & SW1) // checking if button 1 is not pressed
+		{
+			clear_expander0(D9);
 			button_state1 = 0;
+		}
 		if (PIND & SW2) // checking if button 2 is not pressed
+		{
+			clear_expander0(D10);
 			button_state2 = 0;
-		// same for SW3
+		}
+		if (read_expander0(SW3)) // checking if button 3 is not pressed
+		{
+			clear_expander0(D11);
+			button_state3 = 0;
+		}
 
-		test_button(button_state1, button_state2, button_state3);
 
 		// turn on leds if buttons are pressed
 		// if (current_mode > MAX_MODE)
