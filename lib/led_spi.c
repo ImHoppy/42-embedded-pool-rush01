@@ -43,7 +43,7 @@ void	end_frame()
 {
 	for (uint8_t i = 0; i < 4; i++)
 		spi_send(255);
-	SPCR =  ~(1 << SPE);//disabling SPI as master
+	SPCR = 0;//disabling SPI
 }
 
 void	set_leds_spi(uint8_t RGB[3][3])

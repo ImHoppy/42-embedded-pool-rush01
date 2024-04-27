@@ -57,24 +57,24 @@ aht20_data aht20_mesure(void)
 	i2c_write(AHT20_MESURE_PARAM);
 	i2c_write(AHT20_MESURE_PARAM2);
 	i2c_stop();
-	_delay_ms(80);
 	i2c_start(AHT20_ADDR, I2C_READ);
 	i2c_read(ACK);
-	if (!(TWDR & _BV(AHT20_BUSY)))
+	while (!(TWDR & _BV(AHT20_BUSY)))
 	{
-		i2c_read(ACK);
-		data.humidity = (uint32_t)TWDR << 12;
-		i2c_read(ACK);
-		data.humidity |= (uint32_t)TWDR << 4;
-		i2c_read(ACK);
-		data.humidity |= (uint32_t)(TWDR & 0xF0) >> 4;
-		data.temp = (uint32_t)(TWDR & 0x0f) << 16;
-		i2c_read(ACK);
-		data.temp |= (uint32_t)TWDR << 8;
-		i2c_read(ACK);
-		data.temp |= (uint32_t)TWDR;
-		i2c_read(NACK);
 	}
+	i2c_read(ACK);
+	data.humidity = (uint32_t)TWDR << 12;
+	i2c_read(ACK);
+	data.humidity |= (uint32_t)TWDR << 4;
+	i2c_read(ACK);
+	data.humidity |= (uint32_t)(TWDR & 0xF0) >> 4;
+	data.temp = (uint32_t)(TWDR & 0x0f) << 16;
+	i2c_read(ACK);
+	data.temp |= (uint32_t)TWDR << 8;
+	i2c_read(ACK);
+	data.temp |= (uint32_t)TWDR;
+	i2c_read(NACK);
+
 	i2c_stop();
 	return data;
 }
@@ -102,4 +102,21 @@ void print_humi(uint32_t humi)
 	dtostrf(converted_humi, 3, 1, float_str);
 	uart_printstr(float_str);
 	uart_printstr("%");
+}
+
+float calc_temp(uint32_t temp)
+{
+	float converted_temp = temp;
+	converted_temp /= (float)(1L << 20);
+	converted_temp *= 200.0;
+	converted_temp -= 50.0;
+	return (converted_temp);
+}
+
+float calc_humi(uint32_t humi)
+{
+	float converted_humi = humi;
+	converted_humi /= (float)(1L << 20);
+	converted_humi *= 100.0;
+	return (converted_humi);
 }

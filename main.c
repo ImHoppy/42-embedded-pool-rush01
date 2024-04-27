@@ -5,6 +5,7 @@
 #include <adc.h>
 #include <7segment.h>
 #include <timer.h>
+#include <aht20.h>
 
 #include "led_spi.h"
 #include "modes.h"
@@ -16,12 +17,14 @@
 #define D9 (1 << 3)
 #define D10 (1 << 2)
 #define D11 (1 << 1)
-#define MAX_MODE 12
+#define MAX_MODE 11
 
 volatile uint16_t displed_value = 0;
 volatile bool display_point = false;
 
 volatile uint8_t current_mode = 0;
+
+volatile aht20_data aht20 = {0};
 
 void firmware_bootup()
 {
@@ -45,12 +48,28 @@ ISR(TIMER1_OVF_vect)
 		static uint8_t color = 0;
 
 		if (color == 0)
+		{
+			PORTD &= ~(1 << PD3) & ~(1 << PD6); // turn off D5 BLUE and GREEN
+			PORTD |= (1 << PD5); // turn on D5 RED
 			set_leds_spi((uint8_t[3][3]){{100, 0, 0}, {100, 0, 0}, {100, 0, 0}}); // set all spi leds as RED
+		}
 		else if (color == 1)
+		{
+			PORTD &= ~(1 << PD3) & ~(1 << PD5); // turn off D5 RED and BLUE
+			PORTD |= (1 << PD6); // turn on D5 GREEN
 			set_leds_spi((uint8_t[3][3]){{0, 100, 0}, {0, 100, 0}, {0, 100, 0}}); // set all spi leds as GREEN
+		}
 		else
+		{
+			PORTD &= ~(1 << PD5) & ~(1 << PD6); // turn off D5 RED and GREEN
+			PORTD |= (1 << PD3); // turn on D5 BLUE
 			set_leds_spi((uint8_t[3][3]){{0, 0, 100}, {0, 0, 100}, {0, 0, 100}}); // set all spi leds as BLUE
+		}
 		color = (color + 1) % 3;
+	}
+	if (current_mode == 5 || current_mode == 6 || current_mode == 7)
+	{
+		aht20 = aht20_mesure();
 	}
 }
 
@@ -90,16 +109,19 @@ ISR(TIMER0_COMPA_vect)
 
 	case 5:
 	{
+		mode_6();
 		break;
 	}
 
 	case 6:
 	{
+		mode_7();
 		break;
 	}
 
 	case 7:
 	{
+		mode_8();
 		break;
 	}
 
@@ -114,11 +136,6 @@ ISR(TIMER0_COMPA_vect)
 	}
 
 	case 10:
-	{
-		break;
-	}
-
-	case 11:
 	{
 		break;
 	}
@@ -181,11 +198,14 @@ int main()
 
 	// Set D1, D2, D3, D4 as output
 	DDRB = _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
+	
+	//setting LED D5 as output
+	DDRD |= (1 << PD3) | (1 << PD5) | (1 << PD6);
 
 	adc_init(ADC_NORMAL);
 	i2c_init();
 	uart_init(UART_ALL);
-	// spi_init();
+	aht20_init();
 
 	seg7_init();
 	firmware_bootup();
@@ -237,6 +257,7 @@ int main()
 		// same for SW3
 
 		test_button(button_state1, button_state2, button_state3);
+
 		// turn on leds if buttons are pressed
 		// if (current_mode > MAX_MODE)
 		// {
