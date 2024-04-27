@@ -5,6 +5,7 @@
 #include <adc.h>
 #include <7segment.h>
 #include <timer.h>
+#include <rtc.h>
 
 #include "led_spi.h"
 #include "modes.h"
@@ -22,6 +23,8 @@ volatile uint16_t displed_value = 0;
 volatile bool display_point = false;
 
 volatile uint8_t current_mode = 0;
+
+volatile rtc_data time_data = {0};
 
 void firmware_bootup()
 {
@@ -49,6 +52,10 @@ ISR(TIMER1_OVF_vect)
 		else
 			set_leds_spi((uint8_t[3][3]){{0, 0, 100}, {0, 0, 100}, {0, 0, 100}}); // set all spi leds as BLUE
 		color = (color + 1) % 3;
+	}
+	else if (current_mode == 8 || current_mode == 9 || current_mode == 10 || current_mode == 11)
+	{
+		time_data = rtc_get_data();
 	}
 }
 
@@ -100,22 +107,23 @@ ISR(TIMER0_COMPA_vect)
 	{
 		break;
 	}
-
+	// Time and date
 	case 8:
 	{
+		displed_value = time_data.hour * 100 + time_data.min;
+		display_point = true;
 		break;
 	}
-
 	case 9:
 	{
+		displed_value = time_data.day * 100 + time_data.month;
 		break;
 	}
-
 	case 10:
 	{
+		displed_value = time_data.year;
 		break;
 	}
-
 	case 11:
 	{
 		break;
@@ -189,6 +197,8 @@ int main()
 	mode_4_setup();
 	current_mode = 4;
 	current_mode_display();
+
+	// rtc_set_time(40, 25, 17, 1, 1, 24);
 	while (1)
 	{
 		if (button_state1 == 0)
@@ -201,6 +211,7 @@ int main()
 				current_mode_display();
 				clear_leds_spi();
 				sei();
+				display_point = false;
 			}
 		}
 
@@ -218,6 +229,7 @@ int main()
 				cli();
 				clear_leds_spi();
 				sei();
+				display_point = false;
 			}
 		}
 		// do the same for SW3

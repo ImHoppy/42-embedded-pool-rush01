@@ -54,17 +54,17 @@ rtc_data rtc_get_data(void)
 	i2c_stop();
 	i2c_start(RTC_ADDR, I2C_READ);
 	i2c_read(ACK);
-	data.sec = TWDR;
+	data.sec = TWDR & 0x7F; // Remove VL bit
 	i2c_read(ACK);
-	data.min = TWDR;
+	data.min = TWDR & 0x7F;
 	i2c_read(ACK);
-	data.hour = TWDR;
+	data.hour = TWDR & 0x3F;
 	i2c_read(ACK);
-	data.day = TWDR;
+	data.day = TWDR & 0x3F;
 	// Skipping weekdays
 	i2c_read(ACK);
 	i2c_read(ACK);
-	data.month = TWDR;
+	data.month = TWDR & 0x1F;
 	i2c_read(NACK);
 	data.year = TWDR;
 	i2c_stop();
