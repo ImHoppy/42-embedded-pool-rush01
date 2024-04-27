@@ -153,6 +153,7 @@ ISR(TIMER0_COMPA_vect)
 	{
 		break;
 	}
+	}
 
 	if (current_mode != 4)
 	{
