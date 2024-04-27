@@ -56,6 +56,7 @@ ISR(TIMER1_OVF_vect)
 	else if (current_mode == 8 || current_mode == 9 || current_mode == 10 || current_mode == 11)
 	{
 		time_data = rtc_get_data();
+		// uart_print_rtc(time_data);
 	}
 }
 
@@ -121,7 +122,7 @@ ISR(TIMER0_COMPA_vect)
 	}
 	case 10:
 	{
-		displed_value = time_data.year;
+		displed_value = (time_data.century ? 2000 : 1900) + time_data.year;
 		break;
 	}
 	case 11:
@@ -195,10 +196,20 @@ int main()
 	timer0_COMP();
 
 	mode_4_setup();
-	current_mode = 4;
+	current_mode = 0;
 	current_mode_display();
 
-	// rtc_set_time(40, 25, 17, 1, 1, 24);
+	const rtc_data new_date = {
+		.sec = 8,
+		.min = 56,
+		.hour = 21,
+		.day = 7,
+		.month = 10,
+		.year = 20,
+		.century = true,
+	};
+
+	rtc_set_data(new_date);
 	while (1)
 	{
 		if (button_state1 == 0)
