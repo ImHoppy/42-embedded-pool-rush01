@@ -6,6 +6,7 @@
 #include <7segment.h>
 #include <timer.h>
 #include <aht20.h>
+#include <rtc.h>
 
 #include "led_spi.h"
 #include "modes.h"
@@ -25,6 +26,7 @@ volatile bool display_point = false;
 volatile uint8_t current_mode = 0;
 
 volatile aht20_data aht20 = {0};
+volatile rtc_data time_data = {0};
 
 void firmware_bootup()
 {
@@ -67,10 +69,14 @@ ISR(TIMER1_OVF_vect)
 		}
 		color = (color + 1) % 3;
 	}
-
-	if (current_mode == 5 || current_mode == 6 || current_mode == 7)
+	else if (current_mode == 5 || current_mode == 6 || current_mode == 7)
 	{
 		aht20 = aht20_mesure();
+	}
+	else if (current_mode == 8 || current_mode == 9 || current_mode == 10 || current_mode == 11)
+	{
+		time_data = rtc_get_data();
+		// uart_print_rtc(time_data);
 	}
 }
 
@@ -125,26 +131,27 @@ ISR(TIMER0_COMPA_vect)
 		mode_8();
 		break;
 	}
-
+	// Time and date
 	case 8:
 	{
+		displed_value = time_data.hour * 100 + time_data.min;
+		display_point = true;
 		break;
 	}
-
 	case 9:
 	{
+		displed_value = time_data.day * 100 + time_data.month;
 		break;
 	}
-
 	case 10:
 	{
+		displed_value = (time_data.century ? 2000 : 1900) + time_data.year;
 		break;
 	}
 
 	default:
 	{
 		break;
-	}
 	}
 
 	if (current_mode != 4)
@@ -235,6 +242,18 @@ int main()
 
 	current_mode = 0;
 	current_mode_display();
+
+	const rtc_data new_date = {
+		.sec = 8,
+		.min = 56,
+		.hour = 21,
+		.day = 7,
+		.month = 10,
+		.year = 20,
+		.century = true,
+	};
+
+	rtc_set_data(new_date);
 	while (1)
 	{
 		if (button_state1 == 0)
@@ -253,6 +272,7 @@ int main()
 				current_mode_display();
 				clear_leds_spi();
 				sei();
+				display_point = false;
 			}
 		}
 
@@ -271,6 +291,7 @@ int main()
 				PORTD &= ~(1 << PD3) & ~(1 << PD5) & ~(1 << PD6); // turn off D5
 				clear_leds_spi();
 				sei();
+				display_point = false;
 			}
 		}
 
