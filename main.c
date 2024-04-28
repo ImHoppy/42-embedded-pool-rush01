@@ -32,10 +32,10 @@ void firmware_bootup()
 {
 	// Clear RGB LEDs
 	clear_leds_spi();
-	SPCR =  ~(1 << SPE);//disabling SPI as master
+
 	// Turn on D1, D2, D3, D4 for 3 sec
-	DDRB |= (1 << PB4); 
-	PORTB |= (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
+	DDRB |= _BV(PIN4);
+	PORTB = (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
 	seg7_turnall(true);
 	_delay_ms(3000);
 	PORTB = 0;
@@ -208,10 +208,8 @@ void	clear_expander0(uint8_t port)
 	sei();
 }
 
-void current_mode_display() 
-{ 
-	SPCR =  ~(1 << SPE);//disabling SPI as master
-	DDRB |= (1 << PB4); 
+void current_mode_display()
+{
 	PORTB = (current_mode & 0b111) | ((current_mode & 0b1000) << 1);
 }
 
@@ -222,18 +220,20 @@ int main()
 	uint8_t button_state3 = 0;
 
 	// Set D1, D2, D3, D4 as output
-	DDRB = _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
-	
+	// DDRB = _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
+
 	//setting LED D5 as output
 	DDRD |= (1 << PD3) | (1 << PD5) | (1 << PD6);
+	DDRB |= _BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4);
+
+	i2c_init();
+	seg7_init();
+
+	firmware_bootup();
 
 	adc_init(ADC_NORMAL);
-	i2c_init();
 	uart_init(UART_ALL);
 	aht20_init();
-
-	seg7_init();
-	// firmware_bootup();
 
 	timer0_init(3);
 	timer0_COMP();
