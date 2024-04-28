@@ -34,10 +34,10 @@ void seg7_display(uint8_t pos, uint8_t n, bool point)
 	states_expander |= 0xf0;
 	i2c_write(states_expander);
 	i2c_write(0);
-	i2c_stop();
+	// i2c_stop();
 
-	i2c_start(slave_address, I2C_WRITE);
-	i2c_write(0x02);
+	// i2c_start(slave_address, I2C_WRITE);
+	// i2c_write(0x02);
 	states_expander &= ~(0x80 >> pos);
 	i2c_write(states_expander);
 	i2c_write(seg7[n] | (point ? 0b10000000 : 0));
@@ -67,6 +67,7 @@ void seg7_display_number(uint16_t number, bool middle_point)
 	seg7_display(1, (number / 10) % 10, false);
 	seg7_display(2, (number / 100) % 10, middle_point);
 	seg7_display(3, (number / 1000) % 10, false);
+	seg7_display(3, 10, false);
 }
 
 void seg7_init()
