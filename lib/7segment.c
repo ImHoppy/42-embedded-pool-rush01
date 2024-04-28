@@ -9,6 +9,8 @@
 
 static const uint8_t slave_address = (0b0100 << 3) /* Fixed Address*/ | 0b000 /* A2 A1 A0 */;
 
+extern volatile	uint8_t	states_expander;
+
 void seg7_display(uint8_t pos, uint8_t n, bool point)
 {
 	static const uint8_t seg7[13] = {
@@ -27,22 +29,17 @@ void seg7_display(uint8_t pos, uint8_t n, bool point)
 		0b01000000, // -
 	};
 
-	// Clear old data register before writing new data
-	i2c_start(0b00100000, I2C_WRITE);
-	i2c_write(0);
-	i2c_start(0b00100000, I2C_READ);
-	i2c_read(NACK);
-	uint8_t to_send = TWDR;
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x02);
-	to_send |= 0xf0;
-	i2c_write(to_send);
+	states_expander |= 0xf0;
+	i2c_write(states_expander);
 	i2c_write(0);
 	i2c_stop();
 
 	i2c_start(slave_address, I2C_WRITE);
 	i2c_write(0x02);
-	i2c_write(to_send & ~(0x80 >> pos));
+	states_expander &= ~(0x80 >> pos);
+	i2c_write(states_expander);
 	i2c_write(seg7[n] | (point ? 0b10000000 : 0));
 	i2c_stop();
 }

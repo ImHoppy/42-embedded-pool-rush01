@@ -21,7 +21,7 @@ void	mode_6()
 void	mode_7()
 {
 	float temp = calc_temp(aht20.temp);
-	temp = (temp * (9 / 5)) + 32;
+	temp = (temp * (9.f / 5.f)) + 32;
 	temp = temp * 10;
 	if ((uint16_t)temp % 10 >= 5)
 	{

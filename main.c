@@ -28,6 +28,8 @@ volatile uint8_t current_mode = 0;
 volatile aht20_data aht20 = {0};
 volatile rtc_data time_data = {0};
 
+volatile uint8_t	states_expander = 0;
+
 void firmware_bootup()
 {
 	// Clear RGB LEDs
@@ -181,13 +183,9 @@ void	set_expander0(uint8_t port)
 {
 	cli();
 	i2c_start(0b00100000, I2C_WRITE);
-	i2c_write(0);
-	i2c_start(0b00100000, I2C_READ);
-	i2c_read(NACK);
-	uint8_t to_send = TWDR;
-	i2c_start(0b00100000, I2C_WRITE);
 	i2c_write(2);
-	i2c_write(to_send & ~port);
+	states_expander &= ~port;
+	i2c_write(states_expander);
 	i2c_stop();
 	sei();
 }
@@ -196,13 +194,9 @@ void	clear_expander0(uint8_t port)
 {
 	cli();
 	i2c_start(0b00100000, I2C_WRITE);
-	i2c_write(0);
-	i2c_start(0b00100000, I2C_READ);
-	i2c_read(NACK);
-	uint8_t to_send = TWDR;
-	i2c_start(0b00100000, I2C_WRITE);
 	i2c_write(2);
-	i2c_write(to_send | port);
+	states_expander |= port;
+	i2c_write(states_expander);
 	i2c_stop();
 	sei();
 }
@@ -267,7 +261,6 @@ int main()
 					current_mode = 0;
 				else
 					current_mode++;
-				// current_mode = (current_mode + 1) % MAX_MODE;
 				PORTD &= ~(1 << PD3) & ~(1 << PD5) & ~(1 << PD6); // turn off D5
 				current_mode_display();
 				clear_leds_spi();
@@ -319,13 +312,5 @@ int main()
 			clear_expander0(D11);
 			button_state3 = 0;
 		}
-
-
-		// turn on leds if buttons are pressed
-		// if (current_mode > MAX_MODE)
-		// {
-		// 	current_mode = 2;
-		// }
-		// rv1();
 	}
 }
