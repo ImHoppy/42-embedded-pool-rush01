@@ -7,7 +7,7 @@ void uart_init(uart_data_type data_type)
 	UBRR0 = BAUD;
 
 	// Enable transmitter/receiver (20.11.3)
-	UCSR0B |= data_type;
+	UCSR0B |= data_type | (1 << RXCIE0);
 
 	// Set frame format: 8 data bit, N, 1 stop bit (20.11.4)
 	UCSR0C = (0b11 << UCSZ00);

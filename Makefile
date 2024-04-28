@@ -11,6 +11,7 @@ SRCS = ./main.c \
 ./lib/rtc.c \
 ./mode_adc.c \
 ./lib/mode_aht20.c \
+./set_date.c \
 ./lib/aht20.c
 
 CC = avr-gcc

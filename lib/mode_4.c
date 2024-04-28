@@ -15,4 +15,5 @@ void	mode_4()
 	seg7_display(2, 4, 0);
 	seg7_display(1, 2, 0);
 	seg7_display(0, 12, 0);
+	seg7_display(0, 10, 0);
 }

@@ -44,7 +44,7 @@ void	led_buttons()
 	uint8_t	button_state1 = 0;
 	uint8_t	button_state2 = 0;
 	uint8_t	button_state3 = 0;
-	
+
 	if (button_state1 == 0)
 	{
 		if (!(PIND & SW1))
@@ -291,28 +291,29 @@ int main()
 
 	uart_init(UART_ALL);
 	firmware_bootup();
-
 	adc_init(ADC_NORMAL);
 	aht20_init();
 
-	timer0_init(20);
+	timer0_init(21);
 	timer0_COMP();
-
 
 	current_mode = 0;
 	current_mode_display();
 
-	const rtc_data new_date = {
-		.sec = 8,
-		.min = 56,
-		.hour = 21,
-		.day = 7,
-		.month = 10,
-		.year = 20,
-		.century = true,
-	};
+	/*
+		// Set the date and time for debug purposes
+		const rtc_data new_date = {
+			.sec = 8,
+			.min = 56,
+			.hour = 21,
+			.day = 7,
+			.month = 10,
+			.year = 20,
+			.century = true,
+		};
 
-	rtc_set_data(new_date);
+		rtc_set_data(new_date);
+	*/
 	while (1)
 	{
 		if (button_state1 == 0)
