@@ -20,6 +20,10 @@
 #define D11 (1 << 1)
 #define MAX_MODE 11
 
+#define SW1 (1 << 2)
+#define SW2 (1 << 4)
+#define SW3 0
+
 volatile uint16_t displed_value = 0;
 volatile bool display_point = false;
 
@@ -29,6 +33,62 @@ volatile aht20_data aht20 = {0};
 volatile rtc_data time_data = {0};
 
 volatile uint8_t	states_expander = 0;
+volatile uint8_t	seconds_passed = 0;
+
+bool read_expander0(uint8_t port);
+void set_expander0(uint8_t port);
+void clear_expander0(uint8_t port);
+
+void	led_buttons()
+{
+	uint8_t	button_state1 = 0;
+	uint8_t	button_state2 = 0;
+	uint8_t	button_state3 = 0;
+	
+	if (button_state1 == 0)
+	{
+		if (!(PIND & SW1))
+		{
+			button_state1 = 1;
+			set_expander0(D9);
+		}
+	}
+	if (PIND & SW1)
+	{
+		button_state1 = 0;
+		clear_expander0(D9);
+	}
+
+	if (button_state2 == 0)
+	{
+		if (!(PIND & SW2))
+		{
+			button_state2 = 1;
+			set_expander0(D10);
+		}
+	}
+	if (PIND & SW2)
+	{
+		button_state2 = 0;
+		clear_expander0(D10);
+	}
+
+	if (button_state3 == 0)
+	{
+		if (!read_expander0(SW3))
+		{
+			button_state3 = 1;
+			set_expander0(D11);
+		}
+	}
+	if (read_expander0(SW3))
+	{
+		button_state3 = 0;
+		clear_expander0(D11);
+	}
+}
+
+
 
 void firmware_bootup()
 {
@@ -38,14 +98,25 @@ void firmware_bootup()
 	DDRB |= _BV(PIN4);
 	PORTB = (_BV(PIN0) | _BV(PIN1) | _BV(PIN2) | _BV(PIN4));
 	seg7_turnall(true);
-	_delay_ms(3000);
+	timer1_init(1000);
+	timer1_OVF();
+	seconds_passed = 0;
+	while (seconds_passed <= 3)
+	{
+		led_buttons();
+	}
 	PORTB = 0;
 	seg7_turnall(false);
-	_delay_ms(1000);
+	seconds_passed = 0;
+	while (seconds_passed < 1)
+	{
+		led_buttons();
+	}
 }
 
 ISR(TIMER1_OVF_vect)
 {
+	seconds_passed++;
 	if (current_mode == 4)
 	{
 		static uint8_t color = 0;
@@ -162,10 +233,6 @@ ISR(TIMER0_COMPA_vect)
 	}
 }
 
-#define SW1 (1 << 2)
-#define SW2 (1 << 4)
-#define SW3 0
-
 bool	read_expander0(uint8_t pin)
 {
 	cli();
@@ -222,17 +289,15 @@ int main()
 	i2c_init();
 	seg7_init();
 
+	uart_init(UART_ALL);
 	firmware_bootup();
 
 	adc_init(ADC_NORMAL);
-	uart_init(UART_ALL);
 	aht20_init();
 
 	timer0_init(20);
 	timer0_COMP();
 
-	timer1_init(1000);
-	timer1_OVF();
 
 	current_mode = 0;
 	current_mode_display();
