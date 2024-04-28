@@ -228,7 +228,7 @@ int main()
 	uart_init(UART_ALL);
 	aht20_init();
 
-	timer0_init(3);
+	timer0_init(20);
 	timer0_COMP();
 
 	timer1_init(1000);
